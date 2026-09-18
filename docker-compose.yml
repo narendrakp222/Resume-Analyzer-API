@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: resume_analyzer_api
+    ports:
+      - "8000:8000"
+    environment:
+      - PROJECT_NAME=Resume Analyzer API
+      - SECRET_KEY=super-secret-jwt-key-change-this-in-production-resume-analyzer
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/resume_analyzer_db
+      - UPLOAD_DIR=./uploads
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+
+  db:
+    image: postgres:16-alpine
+    container_name: resume_analyzer_db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=resume_analyzer_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+volumes:
+  postgres_data:
+  uploads_data:
