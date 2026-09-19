@@ -33,6 +33,16 @@ async def setup_test_db():
     yield
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+    # Clean up any test uploaded files
+    if os.path.exists(settings.UPLOAD_DIR):
+        for fname in os.listdir(settings.UPLOAD_DIR):
+            if fname != ".gitkeep":
+                fpath = os.path.join(settings.UPLOAD_DIR, fname)
+                try:
+                    if os.path.isfile(fpath):
+                        os.remove(fpath)
+                except Exception:
+                    pass
 
 
 @pytest_asyncio.fixture
